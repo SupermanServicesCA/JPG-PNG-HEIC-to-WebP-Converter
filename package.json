@@ -1,0 +1,64 @@
+{
+  "name": "webp-converter",
+  "version": "2.0.0",
+  "description": "Simple desktop app to convert JPG/PNG images to WebP format",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win --x64"
+  },
+  "keywords": [
+    "webp",
+    "image",
+    "converter",
+    "electron"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^40.2.1",
+    "electron-builder": "^26.7.0"
+  },
+  "dependencies": {
+    "heic-convert": "^2.1.0",
+    "sharp": "^0.33.0"
+  },
+  "build": {
+    "appId": "com.webp.converter",
+    "productName": "WebP Converter",
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{thumbs.db,desktop.ini,.prettierrc,.eslintrc.json}"
+    ],
+    "asarUnpack": [
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": true
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/sharp",
+        "to": "sharp",
+        "filter": ["**/*"]
+      }
+    ]
+  }
+}

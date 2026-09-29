@@ -14,6 +14,9 @@ const maxWidthInput = document.getElementById('max-width');
 const maxHeightInput = document.getElementById('max-height');
 const targetKbInput = document.getElementById('target-kb');
 
+const outputDirLabel = document.getElementById('output-dir');
+const resetOutputDirBtn = document.getElementById('reset-output-dir');
+
 const SUPPORTED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'];
 
 function getOptions() {
@@ -21,9 +24,44 @@ function getOptions() {
     quality: qualitySlider.value,
     width: maxWidthInput.value,
     height: maxHeightInput.value,
-    targetKB: targetKbInput.value
+    targetKB: targetKbInput.value,
+    outputDir
   };
 }
+
+// "Save to" folder shared by both tabs. Empty means next to each original. Remembered between runs.
+const OUTPUT_DIR_KEY = 'outputDir';
+let outputDir = '';
+try {
+  outputDir = localStorage.getItem(OUTPUT_DIR_KEY) || '';
+} catch (error) {
+  outputDir = '';
+}
+showOutputDir();
+
+function setOutputDir(dir) {
+  outputDir = dir || '';
+  try {
+    if (outputDir) localStorage.setItem(OUTPUT_DIR_KEY, outputDir);
+    else localStorage.removeItem(OUTPUT_DIR_KEY);
+  } catch (error) {
+    // Not remembered next time, but still used this session.
+  }
+  showOutputDir();
+}
+
+function showOutputDir() {
+  outputDirLabel.textContent = outputDir || 'Same folder as original';
+  outputDirLabel.title = outputDir;
+  resetOutputDirBtn.hidden = !outputDir;
+}
+
+document.getElementById('choose-output-dir').addEventListener('click', async () => {
+  const dir = await window.electronAPI.selectOutputFolder();
+  if (dir) setOutputDir(dir);
+});
+
+resetOutputDirBtn.addEventListener('click', () => setOutputDir(''));
 
 function isSupported(file) {
   return SUPPORTED_EXTENSIONS.includes(file.name.toLowerCase().split('.').pop());
@@ -400,12 +438,11 @@ cropSaveBtn.addEventListener('click', async () => {
 
   try {
     const saved = await window.electronAPI.cropSave(cropFile.path, getCropOptions());
-    if (saved) {
-      cropStatus.innerHTML = `<div class="result-item">
-        <div class="result-header"><span>&#10003; Saved as ${escapeHtml(saved.output)}</span>
-        <span class="savings">${formatBytes(saved.newSize)}</span></div>
-      </div>`;
-    }
+    cropStatus.innerHTML = `<div class="result-item">
+      <div class="result-header"><span>&#10003; Saved as ${escapeHtml(saved.output)}</span>
+      <span class="savings">${formatBytes(saved.newSize)}</span></div>
+      <div class="result-details">${escapeHtml(saved.outputPath)}</div>
+    </div>`;
   } catch (error) {
     cropStatus.innerHTML = `<div class="result-item error">
       <div class="error-message">Error: ${escapeHtml(error.message)}</div>

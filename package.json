@@ -1,6 +1,6 @@
 {
   "name": "webp-converter",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Simple desktop app to convert JPG/PNG images to WebP format",
   "main": "main.js",
   "scripts": {

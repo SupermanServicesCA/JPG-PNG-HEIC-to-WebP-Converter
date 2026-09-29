@@ -249,11 +249,31 @@ async function processImage(filePath, opts) {
   };
 }
 
-function outputPathFor(filePath) {
-  const parsedPath = path.parse(filePath);
+// Output folder: the chosen "Save to" folder, or the source file's own folder.
+async function resolveOutputDir(filePath, outputDir) {
+  if (!outputDir) return path.dirname(filePath);
+  const stats = await fs.stat(outputDir).catch(() => null);
+  if (!stats || !stats.isDirectory()) throw new Error(`Save folder not found: ${outputDir}`);
+  return outputDir;
+}
+
+async function outputPathFor(filePath, outputDir) {
+  const dir = await resolveOutputDir(filePath, outputDir);
+  const name = path.parse(filePath).name;
+  const outputPath = path.join(dir, `${name}.webp`);
   // Never overwrite a WebP source with its own output.
-  const suffix = parsedPath.ext.toLowerCase() === '.webp' ? '-optimized' : '';
-  return path.join(parsedPath.dir, `${parsedPath.name}${suffix}.webp`);
+  return path.resolve(outputPath) === path.resolve(filePath)
+    ? path.join(dir, `${name}-optimized.webp`)
+    : outputPath;
+}
+
+// First free name: "base.webp", then "base-2.webp", "base-3.webp", ...
+async function uniquePath(dir, base) {
+  for (let n = 1; ; n++) {
+    const candidate = path.join(dir, n === 1 ? `${base}.webp` : `${base}-${n}.webp`);
+    const exists = await fs.stat(candidate).then(() => true, () => false);
+    if (!exists) return candidate;
+  }
 }
 
 function toReport(filePath, result) {
@@ -291,7 +311,7 @@ ipcMain.handle('convert-images', async (event, files, options) => {
       const result = await processImage(filePath, opts);
       const report = toReport(filePath, result);
 
-      const outputPath = outputPathFor(filePath);
+      const outputPath = await outputPathFor(filePath, options && options.outputDir);
       await fs.writeFile(outputPath, result.buffer);
       report.output = path.basename(outputPath);
 
@@ -343,20 +363,15 @@ ipcMain.handle('crop-preview', async (event, filePath, options) => {
   return { ...report, dataUrl: `data:image/webp;base64,${buffer.toString('base64')}` };
 });
 
-// Crop tab: encode first so the suggested name can include the final resolution
-// (e.g. "Photo-2560x1100.webp"), then ask where to save.
+// Crop tab: save straight to the "Save to" folder (or next to the source) as name-WxH.webp,
+// numbering the file rather than overwriting an earlier crop.
 ipcMain.handle('crop-save', async (event, filePath, options) => {
   const { buffer, ...report } = await processImage(filePath, normalizeOptions(options));
 
-  const parsedPath = path.parse(filePath);
-  const { canceled, filePath: savePath } = await dialog.showSaveDialog(mainWindow, {
-    defaultPath: path.join(parsedPath.dir, `${parsedPath.name}-${report.outWidth}x${report.outHeight}.webp`),
-    filters: [{ name: 'WebP image', extensions: ['webp'] }]
-  });
-  if (canceled || !savePath) return null;
-
+  const dir = await resolveOutputDir(filePath, options && options.outputDir);
+  const savePath = await uniquePath(dir, `${path.parse(filePath).name}-${report.outWidth}x${report.outHeight}`);
   await fs.writeFile(savePath, buffer);
-  return { ...report, output: path.basename(savePath) };
+  return { ...report, output: path.basename(savePath), outputPath: savePath };
 });
 
 // Handle file selection via dialog

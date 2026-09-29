@@ -408,6 +408,31 @@ header p {
   min-height: 1.4em;
 }
 
+.save-to {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.save-to-label {
+  font-weight: 600;
+}
+
+.output-dir {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-to .small-btn[hidden] {
+  display: none;
+}
+
 .size-input {
   width: 90px;
 }

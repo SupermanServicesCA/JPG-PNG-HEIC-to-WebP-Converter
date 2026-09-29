@@ -11,7 +11,8 @@ A simple, beautiful desktop application to convert JPG, PNG, HEIC, and WebP imag
 - 🎯 Target file size: picks the highest quality that fits, and flags files that can't reach it
 - 👀 Live size preview before converting
 - ♻️ WebP → WebP: re-compress/resize existing WebP files (saved as `name-optimized.webp`, originals are never overwritten)
-- ✂️ Crop tab: drag a crop box (free or fixed ratios) with a side-by-side preview of the compressed result and its file size
+- ✂️ Crop tab: drag a crop box (free, fixed ratios, or an exact width × height) with a side-by-side preview of the compressed result and its file size; saves instantly as `name-WIDTHxHEIGHT.webp`
+- 📁 Save to: next to each original (default) or a folder you choose, remembered between runs
 - 🔄 Honors EXIF orientation, so phone photos come out upright
 - 📊 Real-time file size comparison
 - 💾 Shows savings percentage for each conversion

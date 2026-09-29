@@ -22,7 +22,7 @@
   "dependencies": {
     "cropperjs": "^1.6.3",
     "heic-convert": "^2.1.0",
-    "sharp": "^0.33.0"
+    "sharp": "^0.35.5"
   },
   "build": {
     "appId": "com.webp.converter",

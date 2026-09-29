@@ -441,12 +441,138 @@ header p {
   opacity: 0.5;
 }
 
-.crop-hint {
-  font-size: 0.85em;
-  color: #667eea;
-  margin: -4px 0 12px;
+
+.preset-dialog {
+  /* The global margin reset would otherwise pin the dialog to the top-left */
+  margin: auto;
+  width: min(640px, 92vw);
+  border: none;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  color: #333;
 }
 
-.crop-hint[hidden] {
+.preset-dialog::backdrop {
+  background: rgba(40, 30, 80, 0.45);
+}
+
+.preset-dialog h3 {
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.preset-help {
+  font-size: 0.85em;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.preset-rows-header,
+.preset-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px 110px 32px;
+  gap: 8px;
+  align-items: center;
+}
+
+.preset-rows-header {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+#preset-rows {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.preset-row {
+  margin-bottom: 6px;
+}
+
+.preset-row input,
+.preset-row select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.preset-row input.invalid {
+  border-color: #f44336;
+}
+
+.preset-delete {
+  background: none;
+  border: none;
+  color: #f44336;
+  font-size: 1.3em;
+  cursor: pointer;
+}
+
+.preset-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.preset-actions .spacer {
+  flex: 1;
+}
+
+.small-btn.primary {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.small-btn.primary:hover {
+  background: #5a6fd6;
+}
+
+#preset-error[hidden] {
   display: none;
+}
+
+#preset-error {
+  margin-top: 8px;
+  font-size: 0.9em;
+}
+
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.preset-chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid #c9d2f5;
+  background: white;
+  color: #555;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Exact sizes get a tinted fill so they read differently from shape-only ratios */
+.preset-chip.exact {
+  background: #f0f4ff;
+  color: #5a4d9c;
+}
+
+.preset-chip:hover {
+  border-color: #667eea;
+}
+
+.preset-chip.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
 }

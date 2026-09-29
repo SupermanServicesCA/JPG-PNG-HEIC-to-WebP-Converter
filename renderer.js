@@ -261,7 +261,6 @@ const cropResultStage = document.getElementById('crop-result-stage');
 const cropRatio = document.getElementById('crop-ratio');
 const cropExactWidth = document.getElementById('crop-exact-width');
 const cropExactHeight = document.getElementById('crop-exact-height');
-const cropHint = document.getElementById('crop-hint');
 const cropInfo = document.getElementById('crop-info');
 const cropSaveBtn = document.getElementById('crop-save');
 const cropStatus = document.getElementById('crop-status');
@@ -298,6 +297,7 @@ function clearCrop() {
 
 async function loadCropFile(filePath) {
   if (!filePath) return;
+  cropSaveBtn.disabled = true;
   cropStatus.innerHTML = '';
   cropInfo.textContent = 'Loading...';
 
@@ -327,10 +327,125 @@ async function loadCropFile(filePath) {
       movable: false,
       rotatable: false,
       scalable: false,
-      ready: () => scheduleCropPreview(0),
+      ready: () => {
+        // Save works straight away: it encodes from the current crop, not from the preview.
+        cropSaveBtn.disabled = false;
+        scheduleCropPreview(0);
+      },
       crop: () => scheduleCropPreview()
     });
   };
+}
+
+// ---------- Crop presets ----------
+// A preset is a ratio (locks the crop box shape only) or an exact size (shape + output size).
+// Saved per PC in localStorage, which survives app updates.
+
+const PRESETS_KEY = 'cropPresets';
+const DEFAULT_PRESETS = [
+  { name: '', width: 1, height: 1, type: 'ratio' },
+  { name: '', width: 4, height: 3, type: 'ratio' },
+  { name: '', width: 3, height: 2, type: 'ratio' },
+  { name: '', width: 16, height: 9, type: 'ratio' },
+  { name: '', width: 3, height: 4, type: 'ratio' },
+  { name: '', width: 2, height: 3, type: 'ratio' },
+  { name: '', width: 9, height: 16, type: 'ratio' },
+  { name: 'Hero banner', width: 2560, height: 1100, type: 'exact' },
+  { name: 'Social share', width: 1200, height: 630, type: 'exact' }
+];
+
+let presets = loadPresets();
+let lastPresetValue = 'free';
+
+function withIds(list) {
+  return list.map(p => ({ ...p, id: p.id || crypto.randomUUID() }));
+}
+
+function loadPresets() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PRESETS_KEY));
+    if (Array.isArray(saved)) return withIds(saved);
+  } catch (error) {
+    // Fall through to defaults.
+  }
+  return withIds(DEFAULT_PRESETS);
+}
+
+function savePresets(list) {
+  presets = list;
+  try {
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(list));
+  } catch (error) {
+    // Used this session even if it can't be stored.
+  }
+}
+
+function presetLabel(p) {
+  const size = p.type === 'ratio' ? `${p.width}:${p.height}` : `${p.width}×${p.height}`;
+  return p.name ? `${p.name} (${size})` : size;
+}
+
+function findPreset(value) {
+  return value.startsWith('p:') ? presets.find(p => `p:${p.id}` === value) : null;
+}
+
+function addOption(parent, value, label) {
+  const option = document.createElement('option');
+  option.value = value;
+  option.textContent = label;
+  parent.appendChild(option);
+}
+
+function renderPresetOptions() {
+  const previous = cropRatio.value || lastPresetValue;
+  cropRatio.innerHTML = '';
+  addOption(cropRatio, 'free', 'Free');
+  addOption(cropRatio, 'original', 'Original');
+
+  const ratios = document.createElement('optgroup');
+  ratios.label = 'Ratios';
+  const exacts = document.createElement('optgroup');
+  exacts.label = 'Exact sizes';
+  presets.forEach(p => addOption(p.type === 'ratio' ? ratios : exacts, `p:${p.id}`, presetLabel(p)));
+  addOption(exacts, 'custom', 'Custom size (type below)');
+  if (ratios.children.length) cropRatio.appendChild(ratios);
+  cropRatio.appendChild(exacts);
+
+  addOption(cropRatio, 'edit', 'Edit presets…');
+
+  const stillExists = [...cropRatio.options].some(o => o.value === previous && previous !== 'edit');
+  cropRatio.value = stillExists ? previous : 'free';
+  lastPresetValue = cropRatio.value;
+  renderPresetChips();
+}
+
+// One-click buttons mirroring the dropdown (Free, Original, then every preset).
+function renderPresetChips() {
+  const chips = document.getElementById('preset-chips');
+  chips.innerHTML = '';
+  const choices = [
+    { value: 'free', label: 'Free', kind: 'ratio' },
+    { value: 'original', label: 'Original', kind: 'ratio' },
+    ...presets.map(p => ({ value: `p:${p.id}`, label: presetLabel(p), kind: p.type }))
+  ];
+  choices.forEach(choice => {
+    const chip = document.createElement('button');
+    chip.className = `preset-chip ${choice.kind}`;
+    chip.dataset.value = choice.value;
+    chip.textContent = choice.label;
+    chip.addEventListener('click', () => {
+      cropRatio.value = choice.value;
+      cropRatio.dispatchEvent(new Event('change'));
+    });
+    chips.appendChild(chip);
+  });
+  updatePresetChips();
+}
+
+function updatePresetChips() {
+  document.querySelectorAll('.preset-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.value === cropRatio.value);
+  });
 }
 
 function getExactSize() {
@@ -339,25 +454,152 @@ function getExactSize() {
   return width > 0 && height > 0 ? { width, height } : null;
 }
 
-// An exact size locks the crop box to its shape; otherwise the ratio dropdown applies.
+// The exact size boxes win; otherwise the selected ratio (or Free) applies.
 function currentRatio() {
   const exact = getExactSize();
   if (exact) return exact.width / exact.height;
   if (cropRatio.value === 'original') return cropFile ? cropFile.width / cropFile.height : NaN;
-  return parseFloat(cropRatio.value);
+  const preset = findPreset(cropRatio.value);
+  return preset && preset.type === 'ratio' ? preset.width / preset.height : NaN;
+}
+
+function applyCropShape() {
+  if (cropper) cropper.setAspectRatio(currentRatio());
+  scheduleCropPreview();
 }
 
 cropRatio.addEventListener('change', () => {
-  if (cropper) cropper.setAspectRatio(currentRatio());
+  const value = cropRatio.value;
+  if (value === 'edit') {
+    cropRatio.value = lastPresetValue;
+    openPresetDialog();
+    return;
+  }
+  lastPresetValue = value;
+  updatePresetChips();
+
+  const preset = findPreset(value);
+  if (preset && preset.type === 'exact') {
+    cropExactWidth.value = preset.width;
+    cropExactHeight.value = preset.height;
+  } else if (value === 'custom') {
+    cropExactWidth.focus();
+  } else {
+    cropExactWidth.value = '';
+    cropExactHeight.value = '';
+  }
+  applyCropShape();
 });
 
-[cropExactWidth, cropExactHeight].forEach(input => input.addEventListener('input', () => {
+// Typing a size selects the matching exact preset, or "Custom size".
+function syncPresetToExactSize() {
   const exact = getExactSize();
-  cropRatio.disabled = Boolean(exact);
-  cropHint.hidden = !exact;
-  if (cropper) cropper.setAspectRatio(currentRatio());
-  scheduleCropPreview();
+  const selected = findPreset(cropRatio.value);
+  if (exact) {
+    const match = presets.find(p => p.type === 'exact' && p.width === exact.width && p.height === exact.height);
+    cropRatio.value = match ? `p:${match.id}` : 'custom';
+  } else if (cropRatio.value === 'custom' || (selected && selected.type === 'exact')) {
+    cropRatio.value = 'free';
+  }
+  lastPresetValue = cropRatio.value;
+  updatePresetChips();
+}
+
+[cropExactWidth, cropExactHeight].forEach(input => input.addEventListener('input', () => {
+  syncPresetToExactSize();
+  applyCropShape();
 }));
+
+// ---------- Preset editor ----------
+
+const presetDialog = document.getElementById('preset-dialog');
+const presetRows = document.getElementById('preset-rows');
+const presetError = document.getElementById('preset-error');
+
+function addPresetRow(p = { name: '', width: '', height: '', type: 'exact' }, isNew = false) {
+  const row = document.createElement('div');
+  row.className = 'preset-row';
+  row.dataset.id = p.id || '';
+  row.innerHTML = `
+    <input type="text" class="preset-name">
+    <input type="number" class="preset-width" min="1" step="1">
+    <input type="number" class="preset-height" min="1" step="1">
+    <select class="preset-type">
+      <option value="ratio">Ratio</option>
+      <option value="exact">Exact size</option>
+    </select>
+    <button class="preset-delete" title="Delete">&times;</button>
+  `;
+  row.querySelector('.preset-name').value = p.name;
+  // Only new rows get the example name, so existing unnamed ratios stay uncluttered.
+  if (isNew) row.querySelector('.preset-name').placeholder = 'e.g. Blog header';
+  row.querySelector('.preset-width').value = p.width;
+  row.querySelector('.preset-height').value = p.height;
+  row.querySelector('.preset-type').value = p.type;
+  row.querySelector('.preset-delete').addEventListener('click', () => row.remove());
+  presetRows.appendChild(row);
+  return row;
+}
+
+function openPresetDialog() {
+  presetRows.innerHTML = '';
+  presetError.hidden = true;
+  presets.forEach(p => addPresetRow(p));
+  presetDialog.showModal();
+}
+
+document.getElementById('preset-add').addEventListener('click', () => {
+  const row = addPresetRow(undefined, true);
+  row.scrollIntoView({ block: 'nearest' });
+  row.querySelector('.preset-name').focus();
+});
+
+document.getElementById('preset-restore').addEventListener('click', () => {
+  presetRows.innerHTML = '';
+  presetError.hidden = true;
+  DEFAULT_PRESETS.forEach(p => addPresetRow(p));
+});
+
+document.getElementById('preset-cancel').addEventListener('click', () => presetDialog.close());
+
+document.getElementById('preset-save').addEventListener('click', () => {
+  const list = [];
+  let valid = true;
+
+  presetRows.querySelectorAll('.preset-row').forEach(row => {
+    const widthInput = row.querySelector('.preset-width');
+    const heightInput = row.querySelector('.preset-height');
+    const width = parseInt(widthInput.value, 10);
+    const height = parseInt(heightInput.value, 10);
+    widthInput.classList.toggle('invalid', !(width > 0));
+    heightInput.classList.toggle('invalid', !(height > 0));
+    if (!(width > 0 && height > 0)) {
+      valid = false;
+      return;
+    }
+    list.push({
+      id: row.dataset.id || crypto.randomUUID(),
+      name: row.querySelector('.preset-name').value.trim(),
+      width,
+      height,
+      type: row.querySelector('.preset-type').value
+    });
+  });
+
+  if (!valid) {
+    presetError.textContent = 'Every preset needs a whole-number width and height above 0.';
+    presetError.hidden = false;
+    return;
+  }
+
+  savePresets(list);
+  renderPresetOptions();
+  syncPresetToExactSize();
+  applyCropShape();
+  presetDialog.close();
+});
+
+renderPresetOptions();
 
 document.getElementById('crop-reset').addEventListener('click', () => {
   if (!cropper) return;
@@ -390,7 +632,6 @@ function getCropOptions() {
 function scheduleCropPreview(delay = 350) {
   clearTimeout(cropTimer);
   if (!cropper || !cropFile) return;
-  cropSaveBtn.disabled = true;
   cropTimer = setTimeout(runCropPreview, delay);
 }
 
@@ -428,7 +669,6 @@ async function runCropPreview() {
       `${exact.width}&times;${exact.height}, so it will be saved at ${preview.outWidth}&times;${preview.outHeight} ` +
       `(same shape, not enlarged). ${advice}</span>`;
   }
-  cropSaveBtn.disabled = false;
 }
 
 cropSaveBtn.addEventListener('click', async () => {

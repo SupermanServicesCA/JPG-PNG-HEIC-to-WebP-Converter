@@ -11,7 +11,6 @@
   <div class="container">
     <header>
       <h1>🖼️ WebP Converter</h1>
-      <p>Convert JPG, PNG, HEIC, and WebP images to WebP format</p>
     </header>
 
     <div class="controls">
@@ -80,18 +79,9 @@
         <div class="crop-toolbar">
           <span id="crop-file-name" class="file-name"></span>
           <label class="field inline">
-            <span>Ratio</span>
-            <select id="crop-ratio">
-              <option value="NaN">Free</option>
-              <option value="original">Original</option>
-              <option value="1">1:1</option>
-              <option value="1.3333333">4:3</option>
-              <option value="1.5">3:2</option>
-              <option value="1.7777778">16:9</option>
-              <option value="0.75">3:4</option>
-              <option value="0.6666667">2:3</option>
-              <option value="0.5625">9:16</option>
-            </select>
+            <span>Preset</span>
+            <!-- Options are built from the saved presets in renderer.js -->
+            <select id="crop-ratio"></select>
           </label>
           <label class="field inline">
             <span>Exact size</span>
@@ -103,16 +93,16 @@
           <button id="crop-reset" class="small-btn">Reset box</button>
           <button id="crop-clear" class="small-btn">Clear</button>
         </div>
-        <p class="crop-hint" id="crop-hint" hidden>Exact size is set: the ratio is locked to it, and Max width/height are ignored on this tab.</p>
+        <div class="preset-chips" id="preset-chips"></div>
 
         <div class="crop-compare">
           <div class="crop-pane">
-            <div class="pane-label">Original: drag to crop</div>
+            <div class="pane-label">Original</div>
             <div class="crop-stage"><img id="crop-image" alt=""></div>
           </div>
           <div class="crop-pane">
             <div class="pane-label">
-              Result preview
+              Result
               <label class="actual-size"><input type="checkbox" id="crop-actual-size"> Actual size</label>
             </div>
             <div class="result-stage" id="crop-result-stage"><img id="crop-result" alt=""></div>
@@ -128,6 +118,26 @@
       </div>
     </section>
   </div>
+
+  <dialog id="preset-dialog" class="preset-dialog">
+    <h3>Crop presets</h3>
+    <p class="preset-help">
+      <strong>Ratio</strong> locks only the crop box's shape (Max width/height still apply).
+      <strong>Exact size</strong> locks the shape and saves at exactly that size.
+    </p>
+    <div class="preset-rows-header">
+      <span>Name (optional)</span><span>Width</span><span>Height</span><span>Type</span><span></span>
+    </div>
+    <div id="preset-rows"></div>
+    <p id="preset-error" class="error-message" hidden></p>
+    <div class="preset-actions">
+      <button id="preset-add" class="small-btn">+ Add preset</button>
+      <button id="preset-restore" class="small-btn">Restore defaults</button>
+      <span class="spacer"></span>
+      <button id="preset-cancel" class="small-btn">Cancel</button>
+      <button id="preset-save" class="small-btn primary">Save</button>
+    </div>
+  </dialog>
 
   <script src="node_modules/cropperjs/dist/cropper.min.js"></script>
   <script src="renderer.js"></script>

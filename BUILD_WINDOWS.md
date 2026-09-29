@@ -1,11 +1,11 @@
-# Building WebP Converter for Windows 11
+# Building WebP Converter for Windows 10/11
 
 ## Quick Start (Recommended)
 
 ### Option 1: Build on Windows PC
 
-1. **Prerequisites on Windows 11:**
-   - Install [Node.js 18+](https://nodejs.org/) (LTS version recommended)
+1. **Prerequisites on Windows 10/11:**
+   - Install [Node.js 20.9+](https://nodejs.org/) (LTS version recommended; required by sharp)
    - **Enable Developer Mode** (Settings → System → For developers → Developer Mode).
      electron-builder's code-signing toolchain extracts an archive containing macOS
      symlinks; without Developer Mode, Windows refuses to create them and the build
@@ -84,18 +84,19 @@ The build is configured in `package.json` under the `build` section:
 
 ### Expected npm warnings
 
-`npm install` prints deprecation warnings (`inflight`, `glob@7`, `rimraf@2`, `boolean`) and
-`npm audit` reports vulnerabilities. These are all transitive dependencies of
-`electron-builder` / `electron-builder`'s toolchain — build-time only. The shipped app's
-dependency tree is clean:
+`npm install` prints deprecation warnings (`inflight`, `glob`, `rimraf`, `boolean`). These
+come from `electron-builder`'s toolchain, are build-time only, and are harmless. `npm audit`
+should report 0 vulnerabilities; if new advisories appear, check whether they're in the
+shipped app with:
 
 ```powershell
-npm audit --omit=dev   # found 0 vulnerabilities
+npm audit --omit=dev
 ```
 
-Don't run `npm audit fix --force` — it will try to downgrade or major-bump the build
-toolchain. `electron` itself is the one devDependency whose binary *does* ship, so keep it
-patched (`npm update electron`).
+Don't run `npm audit fix --force`: it will try to downgrade or major-bump the build
+toolchain. `electron` is the one devDependency whose binary *does* ship. Electron only
+patches its three newest major versions, so move to a supported major when the current one
+drops out of support (check [electronjs.org/docs/latest/tutorial/electron-timelines](https://www.electronjs.org/docs/latest/tutorial/electron-timelines)).
 
 ## Troubleshooting
 
@@ -143,14 +144,11 @@ Pick one fix:
 
 **Build fails on Linux:**
 - Cross-compilation can be tricky
-- Recommended: Build directly on Windows 11 machine
+- Recommended: Build directly on a Windows machine
 
 **Large installer size (~100MB):**
 - Normal for Electron apps
 - Includes Chromium runtime + Node.js + your app
-- Note: `build.extraResources` copies `node_modules/sharp` into `resources\sharp` in
-  addition to `build.asarUnpack` already unpacking it. That duplication is worth removing
-  if size matters.
 
 **Need 32-bit version?**
 - Change `"target": ["nsis"]` to include both

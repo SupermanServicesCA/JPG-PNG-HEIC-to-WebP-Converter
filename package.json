@@ -1,7 +1,7 @@
 {
   "name": "webp-converter",
-  "version": "2.1.2",
-  "description": "Simple desktop app to convert JPG/PNG images to WebP format",
+  "version": "2.1.3",
+  "description": "Desktop app to convert, resize, crop, and compress JPG, PNG, HEIC, and WebP images to WebP",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -11,13 +11,16 @@
     "webp",
     "image",
     "converter",
+    "heic",
+    "crop",
+    "resize",
     "electron"
   ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^40.10.6",
-    "electron-builder": "^26.7.0"
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
     "cropperjs": "^1.6.3",
@@ -53,15 +56,6 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
       "deleteAppDataOnUninstall": true
-    },
-    "extraResources": [
-      {
-        "from": "node_modules/sharp",
-        "to": "sharp",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ]
+    }
   }
 }

@@ -1,120 +1,67 @@
 # WebP Converter
 
-A simple, beautiful desktop application to convert JPG, PNG, HEIC, and WebP images to WebP format with significant file size savings.
+A Windows desktop app for turning JPG, PNG, HEIC, and WebP images into small, web-ready WebP files. Resize, hit a target file size, or crop to an exact size, with a live preview of the result before you save.
+
+![WebP Converter's Crop tab: a photo with a 4:3 crop box on the left and the compressed result on the right](docs/screenshot.webp)
+
+## Download
+
+**[Download the latest installer](https://github.com/SupermanServicesCA/JPG-PNG-HEIC-to-WebP-Converter/releases/latest)** (Windows 10/11, 64-bit), then run `WebP-Converter-Setup-x.x.x.exe`.
+
+The installer isn't code-signed, so Windows may show a SmartScreen warning. Click **More info → Run anyway**. New versions install over old ones and keep your settings.
 
 ## Features
 
-- 🎨 Clean, modern UI with drag-and-drop support
-- 📦 Batch conversion (multiple files at once)
-- ⚙️ Adjustable quality settings (1-100)
-- 📐 Resize to a max width and/or height (never upscales, Lanczos3)
-- 🎯 Target file size: picks the highest quality that fits, and flags files that can't reach it
-- 👀 Live size preview before converting
-- ♻️ WebP → WebP: re-compress/resize existing WebP files (saved as `name-optimized.webp`, originals are never overwritten)
-- ✂️ Crop tab: drag a crop box (free, a ratio, or an exact width × height; ratios and exact sizes are editable presets via **Edit presets…**) with a side-by-side preview of the compressed result and its file size; saves instantly as `name-WIDTHxHEIGHT.webp`
-- 📁 Save to: next to each original (default) or a folder you choose, remembered between runs
-- 🔄 Honors EXIF orientation, so phone photos come out upright
-- 📊 Real-time file size comparison
-- 💾 Shows savings percentage for each conversion
-- 🖥️ Runs completely offline (no internet required)
-- ⚡ Fast conversion using sharp library
+- **Batch convert** JPG, PNG, HEIC, and WebP to WebP by drag and drop
+- **Resize** to a max width and/or height (images are only ever shrunk, never enlarged)
+- **Target file size:** each image gets the highest quality that fits; files that can't reach it are flagged
+- **Live preview** of each file's output size and dimensions before converting
+- **Crop tab** with ratio and exact-size presets (e.g. 16:9, 2560×1100), editable to match your site
+- **Save to** the original's folder or a folder you choose
+- Phone photos come out upright, and everything runs offline
 
-## Installation & Usage
+## How to use
 
-### For Development
+The **Quality**, **Max width/height**, **Target file size**, and **Save to** settings at the top apply to both tabs.
 
-1. **Install dependencies:**
-   ```bash
-   cd ~/Documents/GitHub/webp-converter
-   npm install
-   ```
+### Batch
 
-2. **Run the app:**
-   ```bash
-   npm start
-   ```
+1. Drag images onto the drop zone (or click it to browse).
+2. Check the estimated size shown next to each file, and adjust the settings if needed.
+3. Click **Convert to WebP**.
 
-### Building for Windows 11
+Files are saved as `name.webp`. Converted WebP files are saved as `name-optimized.webp` so the original is never overwritten.
 
-1. **Install dependencies (if not already done):**
-   ```bash
-   npm install
-   ```
+### Crop
 
-2. **Build Windows executable:**
-   ```bash
-   npm run build:win
-   ```
+1. Drop one image onto the Crop tab.
+2. Pick a preset from the dropdown or the buttons (**Free**, **Original**, a ratio, or an exact size), or type an exact width × height.
+3. Drag the crop box to choose what to keep. The **Result** pane shows the compressed output and its file size; tick **Actual size** to check detail at 100%.
+4. Click **Save as WebP**. The file is saved as `name-2560x1100.webp`; saving the same size again adds `-2`, `-3`, and so on.
 
-3. **Find the installer:**
-   - The installer will be in `dist/` folder
-   - Look for `WebP Converter Setup X.X.X.exe`
-   - Transfer this .exe file to your Windows 11 PC
+With an exact size, the output is exactly that size. If the selected area is smaller, the app warns you and saves the largest size with the same shape instead of enlarging the image.
 
-4. **On Windows 11:**
-   - Double-click the installer
-   - Follow installation wizard
-   - Launch "WebP Converter" from Start Menu
+To change the presets, choose **Edit presets…** at the bottom of the dropdown. A **Ratio** preset only locks the crop box's shape; an **Exact size** preset also sets the output size.
 
-## How to Use
+## Build from source
 
-1. **Launch the app**
-2. **Adjust quality slider** (default: 85)
-   - Higher = better quality, larger file
-   - Lower = more compression, smaller file
-   - Recommended: 75-90 for most uses
-3. **Add images:**
-   - Drag and drop JPG/PNG files onto the drop zone
-   - OR click the drop zone to browse files
-4. **Click "Convert to WebP"**
-5. **Check results** - shows file size savings for each conversion
-6. **Output files** are saved in the same folder as originals with `.webp` extension
+Requires [Node.js](https://nodejs.org/) 20 or later.
 
-## Technical Details
+```bash
+npm install
+npm start           # run the app in development mode
+npm run build:win   # build the Windows installer into dist/
+```
 
-- **Framework:** Electron (cross-platform desktop apps)
-- **Image Processing:** Sharp (fast, high-quality WebP conversion)
-- **Supported Formats:** JPG, JPEG, PNG → WebP
-- **Output Location:** Same directory as source files
-- **Quality Range:** 1-100 (default: 85)
+See [BUILD_WINDOWS.md](BUILD_WINDOWS.md) for Windows build setup and troubleshooting.
 
-## File Size Savings
+## Built with
 
-WebP typically achieves:
-- **30-50% smaller** than JPEG at same quality
-- **25-35% smaller** than PNG (lossy)
-- **26% smaller** than PNG (lossless mode)
-
-## Requirements
-
-### Development
-- Node.js 18+ 
-- npm
-
-### Windows Build
-- Windows 11 (64-bit)
-- ~100MB disk space for installation
-
-## Troubleshooting
-
-**"App won't start"**
-- Make sure Node.js 18+ is installed
-- Run `npm install` again
-
-**"Conversion failed"**
-- Check that files are valid JPG/PNG images
-- Ensure you have write permission in the output directory
-
-**"Build failed"**
-- Run `npm install` to ensure all dependencies are present
-- Check that electron-builder is installed
+- [Electron](https://www.electronjs.org/): desktop app framework
+- [sharp](https://sharp.pixelplumbing.com/) (libvips + libwebp): image decoding, resizing, and WebP encoding
+- [Cropper.js](https://github.com/fengyuanchen/cropperjs): crop box
+- [heic-convert](https://github.com/catdad-experiments/heic-convert): HEIC/HEIF decoding
 
 ## License
 
-MIT - Feel free to use and modify as needed!
-
-## Credits
-
-Built with:
-- [Electron](https://www.electronjs.org/) - Desktop app framework
-- [Sharp](https://sharp.pixelplumbing.com/) - High-performance image processing
+MIT

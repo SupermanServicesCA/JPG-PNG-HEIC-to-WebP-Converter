@@ -129,11 +129,6 @@ header p {
   color: #333;
 }
 
-.file-size {
-  color: #666;
-  font-size: 0.9em;
-}
-
 .button-row {
   display: flex;
   gap: 12px;

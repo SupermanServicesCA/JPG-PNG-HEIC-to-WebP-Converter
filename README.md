@@ -1,12 +1,18 @@
 # WebP Converter
 
-A simple, beautiful desktop application to convert JPG and PNG images to WebP format with significant file size savings.
+A simple, beautiful desktop application to convert JPG, PNG, HEIC, and WebP images to WebP format with significant file size savings.
 
 ## Features
 
 - 🎨 Clean, modern UI with drag-and-drop support
 - 📦 Batch conversion (multiple files at once)
 - ⚙️ Adjustable quality settings (1-100)
+- 📐 Resize to a max width and/or height (never upscales, Lanczos3)
+- 🎯 Target file size: picks the highest quality that fits, and flags files that can't reach it
+- 👀 Live size preview before converting
+- ♻️ WebP → WebP: re-compress/resize existing WebP files (saved as `name-optimized.webp`, originals are never overwritten)
+- ✂️ Crop tab: drag a crop box (free or fixed ratios) with a side-by-side preview of the compressed result and its file size
+- 🔄 Honors EXIF orientation, so phone photos come out upright
 - 📊 Real-time file size comparison
 - 💾 Shows savings percentage for each conversion
 - 🖥️ Runs completely offline (no internet required)

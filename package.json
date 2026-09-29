@@ -1,6 +1,6 @@
 {
   "name": "webp-converter",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Simple desktop app to convert JPG/PNG images to WebP format",
   "main": "main.js",
   "scripts": {
@@ -20,6 +20,7 @@
     "electron-builder": "^26.7.0"
   },
   "dependencies": {
+    "cropperjs": "^1.6.3",
     "heic-convert": "^2.1.0",
     "sharp": "^0.33.0"
   },
@@ -57,7 +58,9 @@
       {
         "from": "node_modules/sharp",
         "to": "sharp",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ]
   }

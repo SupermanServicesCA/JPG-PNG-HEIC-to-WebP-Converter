@@ -2,6 +2,8 @@
 
 A Windows desktop app for turning JPG, PNG, HEIC, and WebP images into small, web-ready WebP files. Resize, hit a target file size, or crop to an exact size, with a live preview of the result before you save.
 
+Built and maintained by [Superman Services](https://supermanservices.ca/). Read more about the app on its [project page](https://supermanservices.ca/tools/webp-converter/).
+
 ![WebP Converter's Crop tab: a photo with a 4:3 crop box on the left and the compressed result on the right](docs/screenshot.webp)
 
 ## Download
